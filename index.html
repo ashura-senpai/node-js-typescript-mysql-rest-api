@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>API REST Tutorial CRUD</title>
+    <script>
+      // Função para fazer requisições HTTP usando fetch
+      async function fetchAPI(url, options) {
+        const response = await fetch(url, options);
+        if (!response.ok) {
+          const message = `An error occurred: ${response.status}`;
+          throw new Error(message);
+        }
+        return response.json();
+      }
+
+      // Função para criar um novo tutorial
+      async function addTutorial() {
+        const title = document.getElementById("title").value;
+        const description = document.getElementById("description").value;
+
+        const requestOptions = {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ title, description }),
+        };
+
+        try {
+          const result = await fetchAPI("/api/tutorials", requestOptions);
+          console.log("Tutorial adicionado:", result);
+          // Pode adicionar código para atualizar a interface após adicionar
+        } catch (error) {
+          console.error("Erro ao adicionar tutorial:", error);
+        }
+      }
+
+      // Função para deletar um tutorial pelo ID
+      async function deleteTutorial(id) {
+        const requestOptions = {
+          method: "DELETE",
+        };
+
+        try {
+          const result = await fetchAPI(`api/tutorials/${id}`, requestOptions);
+          console.log(`Tutorial com ID ${id} deletado`);
+          // Pode adicionar código para atualizar a interface após deletar
+        } catch (error) {
+          console.error(`Erro ao deletar tutorial com ID ${id}:`, error);
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <h2>Adicionar Novo Tutorial</h2>
+    <form onsubmit="event.preventDefault(); addTutorial()">
+      <label for="title">Título:</label>
+      <input type="text" id="title" name="title" required /><br /><br />
+      <label for="description">Descrição:</label><br />
+      <textarea
+        id="description"
+        name="description"
+        rows="4"
+        cols="50"
+        required
+      ></textarea
+      ><br /><br />
+      <button type="submit">Adicionar Tutorial</button>
+    </form>
+
+    <h2>Listagem de Tutoriais</h2>
+    <ul id="tutorialList">
+      <!-- Aqui será preenchido dinamicamente com tutoriais -->
+    </ul>
+
+    <script>
+      // Função para carregar todos os tutoriais ao carregar a página
+      async function loadTutorials() {
+        try {
+          const tutorials = await fetchAPI(
+            "http://localhost:8080/api/tutorials"
+          );
+          const tutorialList = document.getElementById("tutorialList");
+
+          tutorialList.innerHTML = ""; // Limpa a lista atual
+
+          tutorials.forEach((tutorial) => {
+            const listItem = document.createElement("li");
+            listItem.textContent = `${tutorial.title}: ${tutorial.description} `;
+
+            const deleteButton = document.createElement("button");
+            deleteButton.textContent = "Deletar";
+            deleteButton.addEventListener("click", () =>
+              deleteTutorial(tutorial.id)
+            );
+
+            listItem.appendChild(deleteButton);
+            tutorialList.appendChild(listItem);
+          });
+        } catch (error) {
+          console.error("Erro ao carregar tutoriais:", error);
+        }
+      }
+
+      // Carrega os tutoriais ao carregar a página
+      document.addEventListener("DOMContentLoaded", () => {
+        loadTutorials();
+      });
+    </script>
+  </body>
+</html>
